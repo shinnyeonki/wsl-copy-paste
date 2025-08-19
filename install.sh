@@ -17,7 +17,7 @@ echo "======================================"
 if ! grep -qi microsoft /proc/version 2>/dev/null; then
     echo -e "${RED}Warning: This script is designed for WSL (Windows Subsystem for Linux)${NC}"
     echo "It may not work correctly on other systems."
-    read -p "Do you want to continue anyway? (y/N): " -n 1 -r
+    read -p "Do you want to continue anyway? (y/N): " -n 1 -r < /dev/tty
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo "Installation cancelled."
@@ -52,8 +52,8 @@ echo -e "${BLUE}Configuration file: ${YELLOW}$CONFIG_FILE${NC}"
 # Get alias names from user
 echo ""
 echo -e "${BLUE}Choose alias names for copy and paste commands:${NC}"
-read -p "Enter alias name for copy command (default: copy): " COPY_ALIAS
-read -p "Enter alias name for paste command (default: paste): " PASTE_ALIAS
+read -p "Enter alias name for copy command (default: copy): " COPY_ALIAS < /dev/tty
+read -p "Enter alias name for paste command (default: paste): " PASTE_ALIAS < /dev/tty
 
 # Set defaults if empty
 COPY_ALIAS=${COPY_ALIAS:-copy}
@@ -70,13 +70,13 @@ fi
 # Check if aliases already exist
 if grep -q "alias $COPY_ALIAS=" "$CONFIG_FILE" || grep -q "alias $PASTE_ALIAS=" "$CONFIG_FILE"; then
     echo -e "${YELLOW}Aliases '$COPY_ALIAS' or '$PASTE_ALIAS' already exist in $CONFIG_FILE${NC}"
-    read -p "Do you want to replace them? (y/N): " -n 1 -r
+    read -p "Do you want to replace them? (y/N): " -n 1 -r < /dev/tty
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo "Installation cancelled."
         exit 1
     fi
-    
+
     # Remove existing aliases
     echo -e "${BLUE}Removing existing aliases...${NC}"
     sed -i "/^alias $COPY_ALIAS=/d" "$CONFIG_FILE"
