@@ -93,8 +93,8 @@ cat >> "$CONFIG_FILE" << EOF
 
 # WSL Copy-Paste Aliases (wsl-copy-paste)
 # Perfect clipboard integration between WSL and Windows
-alias $COPY_ALIAS='sed "s/$/\r/" | powershell.exe -noprofile -command "\$stdin = [Console]::OpenStandardInput(); \$bytes = [System.IO.MemoryStream]::new(); \$stdin.CopyTo(\$bytes); \$text = [System.Text.Encoding]::UTF8.GetString(\$bytes.ToArray()); Set-Clipboard -Value \$text"'
-alias $PASTE_ALIAS='powershell.exe -noprofile -command "\$text = Get-Clipboard -Raw; \$bytes = [System.Text.Encoding]::UTF8.GetBytes(\$text); [Console]::OpenStandardOutput().Write(\$bytes, 0, \$bytes.Length)" | sed "s/\r$//"'
+alias $COPY_ALIAS='powershell.exe -noprofile -command "\$stdin = [Console]::OpenStandardInput(); \$bytes = [System.IO.MemoryStream]::new(); \$stdin.CopyTo(\$bytes); \$text = [System.Text.Encoding]::UTF8.GetString(\$bytes.ToArray()); \$text = \$text -replace \"\`n\", \"\`r\`n\"; Set-Clipboard -Value \$text"'
+alias $PASTE_ALIAS='powershell.exe -noprofile -command "\$text = Get-Clipboard -Raw; \$bytes = [System.Text.Encoding]::UTF8.GetBytes(\$text); [Console]::OpenStandardOutput().Write(\$bytes, 0, \$bytes.Length)" | tr -d "\r"'
 EOF
 
 echo -e "${GREEN}✅ Aliases successfully added to $CONFIG_FILE${NC}"
