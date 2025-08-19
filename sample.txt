@@ -1,0 +1,56 @@
+English (Basic ASCII): The quick brown fox jumps over the lazy dog. 1234567890
+
+Extended Latin (with diacritics): François, ¿cómo estás?, Mütter, São Paulo
+
+Vietnamese (Extended Latin with complex tone marks): Tiếng Việt, Xin chào thế giới
+
+Cyrillic (Russian): Русский язык, Привет мир!
+
+Greek: Ελληνική γλώσσα, γεια σου κόσμε
+
+Armenian: Հայերեն, Բարև աշխարհ
+
+Georgian: ქართული, გამარჯობა მსოფლიო
+
+Korean (Hangul): 안녕하세요, 홍길동입니다.
+
+Hanja (Korean use of Chinese characters): 大韓民國, 天地人
+
+Japanese (Hiragana, Katakana, Kanji): こんにちは、山田太郎です。ラーメン大好き！
+
+Chinese (Simplified & Traditional): 你好，世界。龍飛鳳舞
+
+Hebrew (Right-to-Left): שלום עולם
+
+Arabic (Right-to-Left): مرحبا بالعالم
+
+Hindi (Devanagari Script): नमस्ते दुनिया
+
+Bengali (Bangla): বাংলা ভাষা, হ্যালো বিশ্ব
+
+Tamil: தமிழ் மொழி, வணக்கம் உலகம்
+
+Thai (Complex Script with combining characters): สวัสดีชาวโลก
+
+Burmese: မြန်မာစာ, မင်္ဂလာပါကမ္ဘာလောက
+
+Khmer: ភាសាខ្មែរ, សួស្តី​ពិភពលោក
+
+Amharic (Ethiopic Script): አማርኛ, ሰላም አለም
+
+Symbols and Punctuation: `~!@#$%^&*()_+-=[]\{}|;':",./<>?
+
+Multi-line & Tab Character Test:
+This is the first line.
+	This second line starts with a tab.
+This is the third line.
+
+Special Characters (Symbols & Math): © ® ™ ± ≠ ≤ ≥ ∞ ∑ ∫ √ ∛ ⊂ ⊃
+
+International Phonetic Alphabet (IPA): /ɪntərˈnæʃənəl fəˈnɛtɪk ˈælfəˌbɛt/
+
+Box-Drawing Characters: ┌─┬┐ ├─┼┤ └─┴┘ │┃┄┅┆┇┈┉┊┋
+
+Braille (Unicode): ⠓⠑⠇⠇⠕ ⠺⠕⠗⠇⠙
+
+Emoji (including composite & modifiers): 😊👍🏽👨‍👩‍👧‍👦❤️🇰🇷👩🏿‍🚀🏳️‍🌈
