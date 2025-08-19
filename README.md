@@ -43,16 +43,10 @@ To solve these problems, we will call Windows' `powershell.exe` directly from WS
 
 Use the automated installation script that detects your shell and adds the aliases automatically:
 
-ubuntu ...
 ```shell
 curl -sSL https://raw.githubusercontent.com/shinnyeonki/wsl-copy-paste/master/install.sh | bash
+# If you are using zsh, you can use | zsh
 ```
-
-debian ...
-```shell
-curl -sSL https://raw.githubusercontent.com/shinnyeonki/wsl-copy-paste/master/install.sh | zsh
-```
-
 
 Or if you have cloned this repository:
 

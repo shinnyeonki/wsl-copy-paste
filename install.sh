@@ -49,6 +49,18 @@ esac
 
 echo -e "${BLUE}Configuration file: ${YELLOW}$CONFIG_FILE${NC}"
 
+# Get alias names from user
+echo ""
+echo -e "${BLUE}Choose alias names for copy and paste commands:${NC}"
+read -p "Enter alias name for copy command (default: copy): " COPY_ALIAS
+read -p "Enter alias name for paste command (default: paste): " PASTE_ALIAS
+
+# Set defaults if empty
+COPY_ALIAS=${COPY_ALIAS:-copy}
+PASTE_ALIAS=${PASTE_ALIAS:-paste}
+
+echo -e "${BLUE}Using aliases: ${YELLOW}$COPY_ALIAS${NC} and ${YELLOW}$PASTE_ALIAS${NC}"
+
 # Check if config file exists
 if [ ! -f "$CONFIG_FILE" ]; then
     echo -e "${YELLOW}Config file $CONFIG_FILE does not exist. Creating it...${NC}"
@@ -56,8 +68,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 # Check if aliases already exist
-if grep -q "alias copy=" "$CONFIG_FILE" || grep -q "alias paste=" "$CONFIG_FILE"; then
-    echo -e "${YELLOW}Copy/paste aliases already exist in $CONFIG_FILE${NC}"
+if grep -q "alias $COPY_ALIAS=" "$CONFIG_FILE" || grep -q "alias $PASTE_ALIAS=" "$CONFIG_FILE"; then
+    echo -e "${YELLOW}Aliases '$COPY_ALIAS' or '$PASTE_ALIAS' already exist in $CONFIG_FILE${NC}"
     read -p "Do you want to replace them? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -67,22 +79,22 @@ if grep -q "alias copy=" "$CONFIG_FILE" || grep -q "alias paste=" "$CONFIG_FILE"
     
     # Remove existing aliases
     echo -e "${BLUE}Removing existing aliases...${NC}"
-    sed -i '/^alias copy=/d' "$CONFIG_FILE"
-    sed -i '/^alias paste=/d' "$CONFIG_FILE"
+    sed -i "/^alias $COPY_ALIAS=/d" "$CONFIG_FILE"
+    sed -i "/^alias $PASTE_ALIAS=/d" "$CONFIG_FILE"
     # Also remove any lines that contain the PowerShell commands (in case they're split)
     sed -i '/powershell\.exe.*Set-Clipboard/d' "$CONFIG_FILE"
     sed -i '/powershell\.exe.*Get-Clipboard/d' "$CONFIG_FILE"
 fi
 
 # Add aliases to config file
-echo -e "${BLUE}Adding copy/paste aliases to $CONFIG_FILE...${NC}"
+echo -e "${BLUE}Adding $COPY_ALIAS/$PASTE_ALIAS aliases to $CONFIG_FILE...${NC}"
 
-cat >> "$CONFIG_FILE" << 'EOF'
+cat >> "$CONFIG_FILE" << EOF
 
 # WSL Copy-Paste Aliases (wsl-copy-paste)
 # Perfect clipboard integration between WSL and Windows
-alias copy='sed "s/$/\r/" | powershell.exe -noprofile -command "\$stdin = [Console]::OpenStandardInput(); \$bytes = [System.IO.MemoryStream]::new(); \$stdin.CopyTo(\$bytes); \$text = [System.Text.Encoding]::UTF8.GetString(\$bytes.ToArray()); Set-Clipboard -Value \$text"'
-alias paste='powershell.exe -noprofile -command "\$text = Get-Clipboard -Raw; \$bytes = [System.Text.Encoding]::UTF8.GetBytes(\$text); [Console]::OpenStandardOutput().Write(\$bytes, 0, \$bytes.Length)" | sed "s/\r$//"'
+alias $COPY_ALIAS='sed "s/$/\r/" | powershell.exe -noprofile -command "\$stdin = [Console]::OpenStandardInput(); \$bytes = [System.IO.MemoryStream]::new(); \$stdin.CopyTo(\$bytes); \$text = [System.Text.Encoding]::UTF8.GetString(\$bytes.ToArray()); Set-Clipboard -Value \$text"'
+alias $PASTE_ALIAS='powershell.exe -noprofile -command "\$text = Get-Clipboard -Raw; \$bytes = [System.Text.Encoding]::UTF8.GetBytes(\$text); [Console]::OpenStandardOutput().Write(\$bytes, 0, \$bytes.Length)" | sed "s/\r$//"'
 EOF
 
 echo -e "${GREEN}✅ Aliases successfully added to $CONFIG_FILE${NC}"
@@ -93,8 +105,8 @@ echo ""
 echo -e "${BLUE}Or simply open a new terminal.${NC}"
 echo ""
 echo -e "${BLUE}Usage examples:${NC}"
-echo -e "  ${YELLOW}echo 'Hello World' | copy${NC}    # Copy text to Windows clipboard"
-echo -e "  ${YELLOW}paste${NC}                        # Paste from Windows clipboard"
-echo -e "  ${YELLOW}cat file.txt | copy${NC}          # Copy file contents to clipboard"
+echo -e "  ${YELLOW}echo 'Hello World' | $COPY_ALIAS${NC}    # Copy text to Windows clipboard"
+echo -e "  ${YELLOW}$PASTE_ALIAS${NC}                        # Paste from Windows clipboard"
+echo -e "  ${YELLOW}cat file.txt | $COPY_ALIAS${NC}          # Copy file contents to clipboard"
 echo ""
 echo -e "${GREEN}Installation complete! 🎉${NC}"
