@@ -37,7 +37,32 @@ Windows and Linux (WSL) have two major differences in how they handle text data,
 
 ### Solution: Setting up Aliases Using PowerShell
 
-To solve these problems, we will call Windows' `powershell.exe` directly from WSL to control the clipboard. Add the following code to the bottom of your `.bashrc` or `.zshrc` file.
+To solve these problems, we will call Windows' `powershell.exe` directly from WSL to control the clipboard.
+
+#### Quick Installation (Recommended)
+
+Use the automated installation script that detects your shell and adds the aliases automatically:
+
+ubuntu ...
+```shell
+curl -sSL https://raw.githubusercontent.com/shinnyeonki/wsl-copy-paste/master/install.sh | bash
+```
+
+debian ...
+```shell
+curl -sSL https://raw.githubusercontent.com/shinnyeonki/wsl-copy-paste/master/install.sh | zsh
+```
+
+
+Or if you have cloned this repository:
+
+```shell
+./install.sh
+```
+
+#### Manual Installation
+
+Alternatively, you can manually add the following code to the bottom of your `.bashrc` or `.zshrc` file:
 
 ```shell
 # Add to your .zshrc or .bashrc
