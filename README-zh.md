@@ -1,90 +1,112 @@
 [ENGLISH](README.md)
-[CHINA](README-zh.md)
-[KOREAN](README-ko.md)
-[JAPAN](README-ja.md)
+[中文](README-zh.md)
+[韩语](README-ko.md)
+[日语](README-ja.md)
 
-### 개요
-이 문서는 WSL(Windows Subsystem for Linux) 환경에서 macOS의 `pbcopy`, `pbpaste`와 같이 클립보드를 완벽하게 사용하기 위한 `copy`, `paste` 별칭(alias) 설정 방법을 설명합니다. 이 방법을 통해 WSL과 Windows 간의 텍스트 복사/붙여넣기 과정에서 발생할 수 있는 인코딩 및 개행 문자 문제를 해결할 수 있습니다.
+### 概述
 
-### 문제점: WSL과 Windows 클립보드의 비호환성
-Windows와 Linux (WSL)는 텍스트 데이터를 처리하는 방식에 두 가지 주요 차이점이 있어, 단순한 클립보드 연동 시 데이터가 손상될 수 있습니다.
+本文档介绍了如何在 WSL (Windows Subsystem for Linux) 环境中设置 `copy` 和 `paste` 别名 (alias)，以实现与 macOS 的 `pbcopy` 和 `pbpaste` 功能完全一致的剪贴板操作。
 
-1.  **개행(Newline) 문자 차이**:
-    *   **Windows**: 한 줄의 끝을 나타내기 위해 **CRLF** (`\r\n`, Carriage Return + Line Feed)를 사용합니다.
-    *   **Linux/macOS**: **LF** (`\n`, Line Feed)만을 사용합니다.
-    *   이 차이로 인해 WSL에서 복사한 텍스트를 Windows에 붙여넣거나 그 반대의 경우, 줄바꿈이 깨지거나 `^M`과 같은 불필요한 문자가 삽입될 수 있습니다.
+尽管已有许多项目和文章试图解决 WSL 中的剪贴板问题，但它们大多存在以下局限性：
 
-2.  **인코딩(Encoding) 차이**:
-    *   WSL의 터미널 환경은 대부분 **UTF-8** 인코딩을 기본으로 사용합니다.
-    *   하지만 파이프라인을 통해 PowerShell로 데이터를 넘길 때, 인코딩이 명시되지 않으면 시스템 기본 인코딩(예: `cp949` 등)으로 잘못 해석될 수 있습니다.
-    *   이로 인해 한글, 일본어, 이모지 등 멀티바이트 문자가 깨져서 `???`나 이상한 문자로 표시되는 문제가 발생합니다.
+1.  **多语言支持不足**：直接使用 `clip.exe` 的简单方法在多语言 (Multilingual) 环境下会因编码问题导致字符损坏。
+2.  **过于笨重**：需要安装额外程序的方法过于繁重。本指南仅通过简单的别名 (alias) 设置即可解决问题。
+3.  **集成不完整**：未能与 Windows 剪贴板完全集成，导致内容有时无法在剪贴板历史记录 (`Win + V`) 中正确显示。
+4.  **保持 Windows 的默认文本处理**：本方法沿用 Windows 的默认文本处理方式（若更改此方式，可能会导致现有软件出现文本乱码）。
 
-### 해결 방법: PowerShell을 이용한 별칭(Alias) 설정
-이러한 문제를 해결하기 위해, WSL에서 Windows의 `powershell.exe`를 직접 호출하여 클립보드를 제어합니다. 아래 코드를 `.bashrc` 또는 `.zshrc` 파일 하단에 추가합니다.
+本指南提出的方法利用 PowerShell 的底层 (low-level) I/O 功能，从根本上解决了编码和换行符问题。最初，我们曾尝试使用 `iconv` 来处理韩语、日语、中文环境下的 `CP949` 等编码，但发现在处理表情符号或泰语等特定字符集时仍会出现乱码。
+
+因此，本方法通过以下原理完美解决了问题：
+
+*   **COPY**：将来自 WSL 管道的输入视为纯粹的**字节流 (byte stream)**，而非文本。然后将此字节流明确地解析为 **UTF-8**，转换为 Unicode 字符串，再存入 Windows 剪贴板。
+*   **PASTE**：从 Windows 剪贴板获取 Unicode 文本，将其转换为 **UTF-8 字节流**，然后直接输出到 WSL。此过程避免了 Windows 控制台错误解析文本而改变编码的可能。
+
+### 问题所在：WSL 与 Windows 剪贴板的兼容性问题
+
+Windows 和 Linux (WSL) 在处理文本数据的方式上存在两个主要差异，这可能导致在简单的剪贴板交互中数据损坏。
+
+1.  **换行符 (Newline) 差异**：
+    *   **Windows**：使用 **CRLF** (`\r\n`，回车 + 换行) 来表示一行的结束。
+    *   **Linux/macOS**：仅使用 **LF** (`\n`，换行)。
+    *   由于这个差异，从 WSL 复制文本到 Windows 或反之，可能会导致换行符损坏或插入不必要的字符，如 `^M`。
+
+2.  **编码 (Encoding) 差异**：
+    *   WSL 的终端环境大多默认使用 **UTF-8** 编码。
+    *   但是，当数据通过管道传递给 PowerShell 时，如果没有明确指定编码，系统可能会错误地以默认编码（例如 `cp949`）进行解析。
+    *   这会导致中文、日文、表情符号等多字节字符损坏，显示为 `???` 或乱码。
+
+### 解决方案：使用 PowerShell 设置别名 (Alias)
+
+为了解决这些问题，我们从 WSL 中直接调用 Windows 的 `powershell.exe` 来控制剪贴板。请将以下代码添加到您的 `.bashrc` 或 `.zshrc` 文件末尾。
 
 ```shell
-# .zshrc 또는 .bashrc 에 추가
+# 添加到 .zshrc 或 .bashrc
 alias copy='sed "s/$/\r/" | powershell.exe -noprofile -command "\$stdin = [Console]::OpenStandardInput(); \$bytes = [System.IO.MemoryStream]::new(); \$stdin.CopyTo(\$bytes); \$text = [System.Text.Encoding]::UTF8.GetString(\$bytes.ToArray()); Set-Clipboard -Value \$text"'
 alias paste='powershell.exe -noprofile -command "\$text = Get-Clipboard -Raw; \$bytes = [System.Text.Encoding]::UTF8.GetBytes(\$text); [Console]::OpenStandardOutput().Write(\$bytes, 0, \$bytes.Length)" | sed "s/\r$//"'
 ```
 
-터미널에 변경 사항을 적용하려면 `source ~/.bashrc` 또는 `source ~/.zshrc` 명령어를 실행하거나 새 터미널을 엽니다.
+要应用更改，请执行 `source ~/.bashrc` 或 `source ~/.zshrc` 命令，或者重新打开一个新的终端。
 
-### 코드 상세 설명
+### 代码详解
 
-#### `copy` (WSL -> Windows 클립보드)
-`cat test.txt | copy`와 같이 파이프로 입력된 데이터를 Windows 클립보드에 복사합니다.
+#### `copy` (WSL -> Windows 剪贴板)
 
-1.  `sed "s/$/\r/"`: 각 줄의 끝(`$`)에 **CR**(`\r`) 문자를 추가합니다. 이로써 Linux의 **LF**(`\n`)가 Windows의 **CRLF**(`\r\n`)로 변환됩니다.
-2.  `powershell.exe ...`: PowerShell 스크립트를 실행합니다.
-3.  `$stdin.CopyTo($bytes)`: WSL에서 넘어온 데이터를 깨짐 없이 그대로 바이트 스트림으로 읽습니다.
-4.  `[System.Text.Encoding]::UTF8.GetString(...)`: 읽어들인 바이트 스트림을 **명시적으로 UTF-8로 디코딩**하여 텍스트로 변환합니다. 이것이 다국어 문자가 깨지지 않게 하는 핵심입니다.
-5.  `Set-Clipboard -Value $text`: 최종적으로 변환된 텍스트를 Windows 클립보드에 저장합니다.
+将通过管道输入的数据（如 `cat test.txt | copy`）复制到 Windows 剪贴板。
 
-#### `paste` (Windows 클립보드 -> WSL)
-Windows 클립보드의 내용을 WSL 터미널로 붙여넣습니다.
+1.  `sed "s/$/\r/"`: 在每行的末尾 (`$`) 添加一个**回车符 (CR, `\r`)**。这样，Linux 的 **LF (`\n`)** 就被转换成了 Windows 的 **CRLF (`\r\n`)**。
+2.  `powershell.exe ...`: 执行 PowerShell 脚本。
+3.  `$stdin.CopyTo($bytes)`: 将来自 WSL 的数据作为字节流直接读取，确保数据无损。
+4.  `[System.Text.Encoding]::UTF8.GetString(...)`: 将读取的字节流**明确指定为 UTF-8 进行解码**，并转换为文本。这是确保多语言字符不损坏的核心步骤。
+5.  `Set-Clipboard -Value $text`: 将最终转换的文本保存到 Windows 剪贴板。
 
-1.  `powershell.exe ...`: PowerShell 스크립트를 실행합니다.
-2.  `Get-Clipboard -Raw`: Windows 클립보드에서 텍스트 데이터를 가져옵니다.
-3.  `[System.Text.Encoding]::UTF8.GetBytes($text)`: 가져온 텍스트를 **명시적으로 UTF-8 바이트 스트림으로 인코딩**합니다.
-4.  `[Console]::OpenStandardOutput().Write(...)`: 인코딩된 바이트 스트림을 WSL의 표준 출력으로 그대로 전달합니다.
-5.  `tr -d "\r"`: PowerShell이 출력한 데이터(CRLF)에서 줄 끝의 **CR**(`\r`) 문자를 모두 삭제합니다. 이로써 Windows의 **CRLF**가 Linux의 **LF**로 변환되어 완벽하게 호환됩니다.
+#### `paste` (Windows 剪贴板 -> WSL)
 
-### 테스트 방법
-아래 스크립트를 실행하여 원본 파일의 내용과, `copy` & `paste`를 거친 후의 내용이 바이트 단위까지 완벽하게 동일한지 확인할 수 있습니다.
-테스트를 위해 'sample.txt' 파일이 현재 디렉토리에 있어야 합니다.
+将 Windows 剪贴板的内容粘贴到 WSL 终端。
+
+1.  `powershell.exe ...`: 执行 PowerShell 脚本。
+2.  `Get-Clipboard -Raw`: 从 Windows 剪贴板获取文本数据。
+3.  `[System.Text.Encoding]::UTF8.GetBytes($text)`: 将获取的文本**明确编码为 UTF-8 字节流**。
+4.  `[Console]::OpenStandardOutput().Write(...)`: 将编码后的字节流直接传输到 WSL 的标准输出。
+5.  `sed "s/\r$//"`: 删除 PowerShell 输出数据 (CRLF) 中每行末尾的**回车符 (CR, `\r`)**。这样，Windows 的 **CRLF** 就被转换成了 Linux 的 **LF**，从而实现完美兼容。
+
+### 测试方法
+
+您可以运行以下脚本，来验证原始文件的内容与经过 `copy` 和 `paste` 操作后的内容在字节级别上是否完全一致。
+测试前，请确保当前目录下存在一个名为 `sample.txt` 的文件。
+
 ```shell
-echo "--- 원본 파일(test.txt)의 바이트 시퀀스 ---"
+echo "--- 原始文件 (sample.txt) 的字节序列 ---"
 cat sample.txt | xxd
 echo ""
 
 cat sample.txt | copy
 
-echo "--- 클립보드(paste)의 바이트 시퀀스 ---"
+echo "--- 剪贴板 (paste) 的字节序列 ---"
 paste | xxd
 echo ""
 
-echo "--- 두 바이트 시퀀스 비교 (diff 결과) ---"
+echo "--- 比较两个字节序列 (diff 结果) ---"
 diff <(cat sample.txt | xxd) <(paste | xxd)
 
 if [ $? -eq 0 ]; then
-    echo "--> ✅ 두 바이트 시퀀스는 완벽하게 동일합니다."
+    echo "--> ✅ 两个字节序列完全一致。"
 else
-    echo "--> ❌ 두 바이트 시퀀스에 차이가 발견되었습니다."
+    echo "--> ❌ 发现两个字节序列存在差异。"
 fi
 ```
 
-### 기대 결과
-테스트 스크립트를 실행하면 `diff` 명령어에서 아무런 결과도 출력되지 않아야 하며, 최종적으로 아래와 같은 성공 메시지가 나타나야 합니다. 이는 원본 데이터와 클립보드를 거친 데이터가 100% 일치함을 의미합니다.
+### 预期结果
+
+运行测试脚本后，`diff` 命令应该不会有任何输出，并且最终会显示如下成功信息。这表明原始数据与经过剪贴板操作后的数据 100% 一致。
 
 ```
---- 원본 파일(test.txt)의 바이트 시퀀스 ---
-(xxd 결과 출력)
+--- 原始文件 (sample.txt) 的字节序列 ---
+(xxd 输出结果)
 
---- 클립보드(paste)의 바이트 시퀀스 ---
-(xxd 결과 출력 - 위와 동일해야 함)
+--- 剪贴板 (paste) 的字节序列 ---
+(xxd 输出结果 - 应与上方完全相同)
 
---- 두 바이트 시퀀스 비교 (diff 결과) ---
+--- 比较两个字节序列 (diff 结果) ---
 
---> ✅ 두 바이트 시퀀스는 완벽하게 동일합니다.
+--> ✅ 两个字节序列完全一致。
 ```
