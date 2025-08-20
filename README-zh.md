@@ -1,7 +1,7 @@
-[英文](README.md)
-[中文](README-zh.md)
-[韩文](README-ko.md)
-[日文](README-ja.md)
+[ENGLISH](README.md)
+[CHINA](README-zh.md)
+[KOREAN](README-ko.md)
+[JAPAN](README-ja.md)
 
 ### 概述
 
