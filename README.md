@@ -13,6 +13,33 @@ While many existing projects and articles attempt to solve clipboard issues in W
 2.  **Unnecessary Program Installation**: Solutions that require installing separate programs are too heavy. This guide solves the problem with a simple alias configuration.
 3.  **Incomplete Integration**: Many solutions do not fully integrate with the Windows clipboard, often causing content not to appear correctly in the clipboard history (`Win + V`).
 4.  **Maintains Windows Default Text Handling**: This method uses Windows' native text processing, avoiding the text corruption in other software that can occur when changing system default settings.
+5.  **Faster Performance**: In comparison to the https://github.com/memoryInject/wsl-clipboard project, this project offers significantly faster speeds by focusing on simpler functionality.
+
+    ```shell
+    shinnk@DESKTOP-KRSG68U:~/project/wsl-copy-paste$ time cat sample.txt | wcopy && time wpaste > /dev/
+    null
+    
+    real    0m5.067s
+    user    0m0.003s
+    sys     0m0.000s
+    
+    real    0m5.069s
+    user    0m0.003s
+    sys     0m0.000s
+    shinnk@DESKTOP-KRSG68U:~/project/wsl-copy-paste$ time cat sample.txt | copy && time paste > /dev/nu
+    ll
+    
+    real    0m0.168s
+    user    0m0.001s
+    sys     0m0.003s
+    
+    real    0m0.225s
+    user    0m0.001s
+    sys     0m0.003s
+    ```
+
+
+    
 
 ### Quick Install (Recommended)
 

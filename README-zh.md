@@ -13,6 +13,30 @@
 2.  **不必要的程序安装**：需要安装额外程序的解决方案过于笨重。本指南仅通过简单的别名设置即可解决问题。
 3.  **不完全的集成**：与 Windows 剪贴板未能完美集成，导致内容常常无法正常显示在剪贴板历史记录 (`Win + V`) 中。
 4.  **保持 Windows 默认文本处理方式**：直接使用 Windows 的原生文本处理方式，避免了因更改系统默认设置而可能导致的其他软件文本乱码问题。
+5.  **更快的性能**: 与 https://github.com/memoryInject/wsl-clipboard 项目相比，本项目的功能更简单，但速度上有着显著的优势。
+
+    ```shell
+    shinnk@DESKTOP-KRSG68U:~/project/wsl-copy-paste$ time cat sample.txt | wcopy && time wpaste > /dev/
+    null
+    
+    real    0m5.067s
+    user    0m0.003s
+    sys     0m0.000s
+    
+    real    0m5.069s
+    user    0m0.003s
+    sys     0m0.000s
+    shinnk@DESKTOP-KRSG68U:~/project/wsl-copy-paste$ time cat sample.txt | copy && time paste > /dev/nu
+    ll
+    
+    real    0m0.168s
+    user    0m0.001s
+    sys     0m0.003s
+    
+    real    0m0.225s
+    user    0m0.001s
+    sys     0m0.003s
+    ```
 
 ### 快速安装（推荐）
 

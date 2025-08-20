@@ -13,7 +13,30 @@ WSLのクリップボード問題を解決しようとする既存の多くの�
 2.  **不要なプログラムのインストール**: 別途プログラムをインストールする必要がある解決策は、重すぎます。このガイドは、簡単なエイリアス設定だけで問題を解決します。
 3.  **不完全な統合**: Windowsのクリップボードと完全に統合されておらず、クリップボードの履歴 (`Win + V`) に内容が正しく表示されないことがよくあります。
 4.  **Windowsのデフォルトのテキスト処理方式を維持**: システムのデフォルト設定を変更する際に発生する可能性のある、他のソフトウェアでのテキストの文字化け現象を起こさずに、Windowsのネイティブなテキスト処理方式をそのまま使用します。
+5.  **高速性**: https://github.com/memoryInject/wsl-clipboard のプロジェクトと比較して、機能はシンプルですが、速度が大幅に向上しています。
 
+    ```shell
+    shinnk@DESKTOP-KRSG68U:~/project/wsl-copy-paste$ time cat sample.txt | wcopy && time wpaste > /dev/
+    null
+    
+    real    0m5.067s
+    user    0m0.003s
+    sys     0m0.000s
+    
+    real    0m5.069s
+    user    0m0.003s
+    sys     0m0.000s
+    shinnk@DESKTOP-KRSG68U:~/project/wsl-copy-paste$ time cat sample.txt | copy && time paste > /dev/nu
+    ll
+    
+    real    0m0.168s
+    user    0m0.001s
+    sys     0m0.003s
+    
+    real    0m0.225s
+    user    0m0.001s
+    sys     0m0.003s
+    ```
 ### クイックインストール (推奨)
 
 インストールスクリプトです。以下のコマンドをターミナルにコピーして実行してください。
