@@ -4,7 +4,7 @@
 [JAPAN](README-ja.md)
 
 ### 概要
-
+![image](image.png)
 このドキュメントでは、WSL (Windows Subsystem for Linux) 環境で、macOSの `pbcopy` および `pbpaste` と完全に同じクリップボード機能を実現するために、`copy` と `paste` のエイリアス (alias) を設定する方法について説明します。
 
 WSLのクリップボード問題を解決しようとする既存の多くのプロジェクトや記事がありますが、そのほとんどは次のような限界があります。

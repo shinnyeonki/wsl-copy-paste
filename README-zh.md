@@ -4,7 +4,7 @@
 [JAPAN](README-ja.md)
 
 ### 概述
-
+![image](image.png)
 本文档介绍了如何在 WSL (Windows Subsystem for Linux) 环境中设置 `copy` 和 `paste` 别名 (alias)，以实现与 macOS 的 `pbcopy` 和 `pbpaste` 完全相同的剪贴板功能。
 
 尽管已有很多项目和文章尝试解决 WSL 的剪贴板问题，但它们大多存在以下局限性：

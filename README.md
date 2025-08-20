@@ -4,7 +4,7 @@
 [JAPAN](README-ja.md)
 
 ### Overview
-
+![image](image.png)
 This document describes how to set up `copy` and `paste` aliases in the Windows Subsystem for Linux (WSL) environment to achieve clipboard functionality identical to `pbcopy` and `pbpaste` on macOS.
 
 While many existing projects and articles attempt to solve clipboard issues in WSL, most have the following limitations:
