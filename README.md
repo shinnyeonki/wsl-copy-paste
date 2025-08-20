@@ -65,6 +65,20 @@ alias paste='powershell.exe -noprofile -command "$text = Get-Clipboard -Raw; $by
 
 To apply the changes to the terminal, run `source ~/.bashrc` or `source ~/.zshrc`, or open a new terminal.
 
+### Future Goals
+
+> The goal is to fully implement all functionalities of the `man pbcopy` command when executed on a macOS system.
+
+**Key Features and Considerations:**
+
+- **Locale Environment Variable Reference:** Input and output encoding will be determined by referencing locale environment variables such as `LANG=en_US.UTF-8`.
+- **Supported Data Types:**
+  - [v] **Plain Text:** Support for basic text copy and paste operations.
+  - [ ] **EPS (Encapsulated PostScript):** Implementation planned to handle EPS image data.
+  - [ ] **RTF (Rich Text Format):** Implementation planned to support formatted text via RTF data.
+- **Development Form:** Currently starting as an alias, but may evolve into a standalone script file or executable in the future.
+- **Development Priority:** Responsiveness will be prioritized over throughput. Emphasis will be placed on immediate responsiveness and user experience.
+
 ### Core Principle: A Fundamental Solution to Encoding and Newline Issues
 
 What distinguishes this method from other solutions is its use of PowerShell's low-level I/O features to **fundamentally resolve encoding and newline character problems**.
