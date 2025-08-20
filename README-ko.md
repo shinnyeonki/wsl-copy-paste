@@ -89,6 +89,100 @@ Windows 클립보드의 내용을 WSL 터미널로 붙여넣습니다.
 
 ### 테스트 방법
 
+
+#### TEST2
+UTF-8 + LF 개행이 윈도우 클립보드에서는 UTF-16 + CRLF 로 올바르게 변환이 잘 되었는지 확인합니다
+
+linux 에서 실행
+```shell
+shinnk@DESKTOP-KRSG68U:~/project/wsl-copy-paste$ cat sample2.txt
+hello
+안녕하세요shinnk@DESKTOP-KRSG68U:~/project/wsl-copy-paste$ cat sample2.txt | xxd
+00000000: 6865 6c6c 6f0a ec95 88eb 8595 ed95 98ec  hello...........
+00000010: 84b8 ec9a 94                             .....
+shinnk@DESKTOP-KRSG68U:~/project/wsl-copy-paste$ cat sample2.txt | copy
+```
+
+
+window 측 powershell 에서 실행
+클립보드의 최신의 텍스트 파일의 바이트를 분석하는 스크립트
+```powershell
+# xxd와 유사한 형식으로 바이트 배열을 출력하는 함수
+function Format-Hex {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [byte[]]$InputObject,
+
+        [int]$BytesPerLine = 16
+    )
+    process {
+        for ($offset = 0; $offset -lt $InputObject.Length; $offset += $BytesPerLine) {
+            $length = [System.Math]::Min($BytesPerLine, $InputObject.Length - $offset)
+            $lineBytes = $InputObject[$offset..($offset + $length - 1)]
+
+            # 1. 오프셋 (Offset) 부분 생성
+            $offsetString = "{0:X8}:" -f $offset
+
+            # 2. 16진수 (Hex) 부분 생성
+            $hexString = ($lineBytes | ForEach-Object { "{0:X2}" -f $_ }) -join ' '
+            $hexString = $hexString.PadRight($BytesPerLine * 3 - 1)
+
+            # 3. ASCII 문자 부분 생성 (표시 가능한 문자만 변환)
+            $asciiString = ($lineBytes | ForEach-Object {
+                if ($_ -ge 32 -and $_ -le 126) { [char]$_ } else { '.' }
+            }) -join ''
+
+            # 세 부분을 합쳐서 한 줄로 출력
+            "$offsetString $hexString  $asciiString"
+        }
+    }
+}
+
+# --- 메인 실행 로직 (텍스트 전용) ---
+
+try {
+    # -Raw 옵션으로 순수 텍스트 문자열만 가져옴
+    $clipboardText = Get-Clipboard -Raw -ErrorAction SilentlyContinue
+
+    if ($null -ne $clipboardText) {
+        Write-Host "클립보드 텍스트의 원본 바이트(UTF-16 LE)를 표시합니다." -ForegroundColor Green
+
+        # .NET 문자열의 기본 인코딩인 UTF-16 LE(Unicode) 바이트 배열로 변환
+        # 이것이 Windows 클립보드의 '있는 그대로'의 텍스트 바이트 표현임
+        $clipboardBytes = [System.Text.Encoding]::Unicode.GetBytes($clipboardText)
+
+        # 헥스 덤프 함수로 출력
+        $clipboardBytes | Format-Hex
+    }
+    else {
+        Write-Warning "클립보드에 텍스트 데이터가 없습니다."
+    }
+}
+catch {
+    Write-Error "클립보드를 읽는 중 오류가 발생했습니다: $($_.Exception.Message)"
+}
+```
+
+1.  **원본 파일 (sample2.txt in WSL)**
+    *   `6865 6c6c 6f`: "hello" (UTF-8)
+    *   `0a`: LF (Line Feed) 개행 문자
+    *   `ec95 88eb 8595 ed95 98ec 84b8 ec9a 94`: "안녕하세요" (UTF-8)
+
+2.  **Windows 클립보드에 복사된 결과**
+    사용자가 제시한 Hex 값을 표준 형식으로 재구성하면 아래와 같습니다. 이것은 Windows 클립보드에 저장된 실제 바이트 값입니다.
+
+    *   `68 00 65 00 6c 00 6c 00 6f 00`: "hello" (UTF-16 Little Endian)
+    *   `0d 00 0a 00`: CRLF (Carriage Return + Line Feed) 개행 문자 (UTF-16 Little Endian)
+    *   `48 C5 55 B1 58 D5 38 C1 94 C6`: "안녕하세요" (UTF-16 Little Endian)
+
+이처럼 원본의 LF(`0a`)가 CRLF(`0d 00 0a 00`)로 정확하게 변환되었으며, 전체 문자열이 UTF-8에서 UTF-16 Little Endian으로 올바르게 인코딩된 것을 확인할 수 있습니다.
+
+
+
+
+#### TEST2
+
 아래 스크립트를 실행하여 원본 파일의 내용과 `copy` & `paste`를 거친 후의 내용이 바이트 수준까지 완벽하게 동일한지 확인할 수 있습니다.
 테스트를 위해서는 현재 디렉터리에 'sample.txt'라는 파일이 있어야 합니다.
 
