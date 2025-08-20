@@ -1,7 +1,3 @@
-好的，我已根据您的要求将文件重构和润色后的内容翻译成中文。
-
----
-
 [ENGLISH](README.md)
 [CHINA](README-zh.md)
 [KOREAN](README-ko.md)

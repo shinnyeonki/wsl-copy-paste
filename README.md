@@ -1,7 +1,3 @@
-물론입니다. 요청하신 내용에 따라 문서를 영어로 번역했습니다.
-
----
-
 [ENGLISH](README.md)
 [CHINA](README-zh.md)
 [KOREAN](README-ko.md)
