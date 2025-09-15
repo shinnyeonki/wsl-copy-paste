@@ -49,6 +49,10 @@ detect_shell() {
             CONFIG_FILE="$HOME/.zshrc"
             SOURCE_CMD="source ~/.zshrc"
             ;;
+        "fish")
+            CONFIG_FILE="$HOME/.config/fish/config.fish"
+            SOURCE_CMD="source $HOME/.config/fish/config.fish"
+            ;;
         *)
             echo -e "${YELLOW}Unsupported shell: $CURRENT_SHELL${NC}"
             echo "Supported shells: bash, zsh"
@@ -139,13 +143,25 @@ get_alias_names() {
 add_aliases_to_config() {
     echo -e "${BLUE}Adding $COPY_ALIAS/$PASTE_ALIAS aliases to $CONFIG_FILE...${NC}"
 
-    cat >> "$CONFIG_FILE" << EOF
+    # if the user has appendWindowsPath disabled we need the full path
+    # don't escape the backticks for fish
+    if [ "$CURRENT_SHELL" == "fish" ]; then
+        cat >>"$CONFIG_FILE" <<EOF
 
 # WSL Copy-Paste Aliases (wsl-copy-paste)
 # Perfect clipboard integration between WSL and Windows
-alias $COPY_ALIAS='powershell.exe -noprofile -command "\$stdin = [Console]::OpenStandardInput(); \$bytes = [System.IO.MemoryStream]::new(); \$stdin.CopyTo(\$bytes); \$text = [System.Text.Encoding]::UTF8.GetString(\$bytes.ToArray()); \$text = \$text -replace \"\`n\", \"\`r\`n\"; Set-Clipboard -Value \$text"'
-alias $PASTE_ALIAS='powershell.exe -noprofile -command "\$text = Get-Clipboard -Raw; \$bytes = [System.Text.Encoding]::UTF8.GetBytes(\$text); [Console]::OpenStandardOutput().Write(\$bytes, 0, \$bytes.Length)" | tr -d "\r"'
+alias $COPY_ALIAS='/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -noprofile -command "\\\$stdin = [Console]::OpenStandardInput(); \\\$bytes = [System.IO.MemoryStream]::new(); \\\$stdin.CopyTo(\\\$bytes); \\\$text = [System.Text.Encoding]::UTF8.GetString(\\\$bytes.ToArray()); \\\$text = \\\$text -replace \"\`n\", \"\`r\`n\"; Set-Clipboard -Value \\\$text"'
+alias $PASTE_ALIAS='/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -noprofile -command "\\\$text = Get-Clipboard -Raw; \\\$bytes = [System.Text.Encoding]::UTF8.GetBytes(\\\$text); [Console]::OpenStandardOutput().Write(\\\$bytes, 0, \\\$bytes.Length)" | tr -d "\r"'
 EOF
+    else
+        cat >>"$CONFIG_FILE" <<EOF
+
+# WSL Copy-Paste Aliases (wsl-copy-paste)
+# Perfect clipboard integration between WSL and Windows
+alias $COPY_ALIAS='/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -noprofile -command "\\\$stdin = [Console]::OpenStandardInput(); \\\$bytes = [System.IO.MemoryStream]::new(); \\\$stdin.CopyTo(\\\$bytes); \\\$text = [System.Text.Encoding]::UTF8.GetString(\\\$bytes.ToArray()); \\\$text = \\\$text -replace \"\\\`n\", \"\\\`r\\\`n\"; Set-Clipboard -Value \\\$text"'
+alias $PASTE_ALIAS='/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -noprofile -command "\\\$text = Get-Clipboard -Raw; \\\$bytes = [System.Text.Encoding]::UTF8.GetBytes(\\\$text); [Console]::OpenStandardOutput().Write(\\\$bytes, 0, \\\$bytes.Length)" | tr -d "\r"'
+EOF
+    fi
 }
 
 # Function to show completion message
