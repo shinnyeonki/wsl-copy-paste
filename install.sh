@@ -143,8 +143,8 @@ add_aliases_to_config() {
 
 # WSL Copy-Paste Aliases (wsl-copy-paste)
 # Perfect clipboard integration between WSL and Windows
-alias $COPY_ALIAS='powershell.exe -noprofile -command "\$stdin = [Console]::OpenStandardInput(); \$bytes = [System.IO.MemoryStream]::new(); \$stdin.CopyTo(\$bytes); \$text = [System.Text.Encoding]::UTF8.GetString(\$bytes.ToArray()); \$text = \$text -replace \"\`n\", \"\`r\`n\"; Set-Clipboard -Value \$text"'
-alias $PASTE_ALIAS='powershell.exe -noprofile -command "\$text = Get-Clipboard -Raw; \$bytes = [System.Text.Encoding]::UTF8.GetBytes(\$text); [Console]::OpenStandardOutput().Write(\$bytes, 0, \$bytes.Length)" | tr -d "\r"'
+alias $COPY_ALIAS='powershell.exe -noprofile -command "\$inputStream = [Console]::OpenStandardInput(); \$memoryStream = New-Object System.IO.MemoryStream; \$inputStream.CopyTo(\$memoryStream); \$utf8Text = [System.Text.Encoding]::UTF8.GetString(\$memoryStream.ToArray()); Set-Clipboard -Value \$utf8Text"'
+alias $PASTE_ALIAS='powershell.exe -noprofile -command "\$clipboardText = Get-Clipboard -Raw; if (\$clipboardText -ne \$null) { \$utf8Bytes = [System.Text.Encoding]::UTF8.GetBytes(\$clipboardText); \$outputStream = [Console]::OpenStandardOutput(); \$outputStream.Write(\$utf8Bytes, 0, \$utf8Bytes.Length); \$outputStream.Flush(); \$outputStream.Close(); }" | tr -d "\r"'
 EOF
 }
 
