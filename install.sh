@@ -153,12 +153,12 @@ fetch_fragments() {
     
     # Try local first (if cloned)
     if [ -f "./copy.ps1" ] && [ -f "./paste.ps1" ]; then
-        PWSH_COPY=$(cat "./copy.ps1" | tr -d '\n\r')
-        PWSH_PASTE=$(cat "./paste.ps1" | tr -d '\n\r')
+        PWSH_COPY=$(cat "./copy.ps1")
+        PWSH_PASTE=$(cat "./paste.ps1")
     else
         # Fetch from GitHub
-        PWSH_COPY=$(curl -sSL "$REPO_URL/copy.ps1" | tr -d '\n\r')
-        PWSH_PASTE=$(curl -sSL "$REPO_URL/paste.ps1" | tr -d '\n\r')
+        PWSH_COPY=$(curl -sSL "$REPO_URL/copy.ps1")
+        PWSH_PASTE=$(curl -sSL "$REPO_URL/paste.ps1")
     fi
 
     if [ -z "$PWSH_COPY" ] || [ -z "$PWSH_PASTE" ]; then
@@ -171,24 +171,32 @@ fetch_fragments() {
 add_aliases_to_config() {
     echo -e "${BLUE}Adding $COPY_ALIAS/$PASTE_ALIAS aliases to $CONFIG_FILE...${NC}"
 
-    # Escape $ for shell aliases to prevent expansion
-    PWSH_COPY_ESC=$(echo "$PWSH_COPY" | sed 's/\$/\\$/g')
-    PWSH_PASTE_ESC=$(echo "$PWSH_PASTE" | sed 's/\$/\\$/g')
+    # Escape $ for shell aliases to prevent expansion and add indentation
+    PWSH_COPY_ESC=$(echo "$PWSH_COPY" | sed 's/\$/\\$/g' | sed 's/^/  /')
+    PWSH_PASTE_ESC=$(echo "$PWSH_PASTE" | sed 's/\$/\\$/g' | sed 's/^/  /')
 
     if [ "$CURRENT_SHELL" == "fish" ]; then
         cat > "$CONFIG_FILE" << EOF
 # WSL Copy-Paste Aliases (wsl-copy-paste)
 # Perfect clipboard integration between WSL and Windows
-alias $COPY_ALIAS 'powershell.exe -noprofile -command "$PWSH_COPY_ESC"'
-alias $PASTE_ALIAS 'powershell.exe -noprofile -command "$PWSH_PASTE_ESC" | tr -d "\r"'
+alias $COPY_ALIAS 'powershell.exe -noprofile -command "
+$PWSH_COPY_ESC
+"'
+alias $PASTE_ALIAS 'powershell.exe -noprofile -command "
+$PWSH_PASTE_ESC
+" | tr -d "\r"'
 EOF
     else
         cat >> "$CONFIG_FILE" << EOF
 
 # WSL Copy-Paste Aliases (wsl-copy-paste)
 # Perfect clipboard integration between WSL and Windows
-alias $COPY_ALIAS='powershell.exe -noprofile -command "$PWSH_COPY_ESC"'
-alias $PASTE_ALIAS='powershell.exe -noprofile -command "$PWSH_PASTE_ESC" | tr -d "\r"'
+alias $COPY_ALIAS='powershell.exe -noprofile -command "
+$PWSH_COPY_ESC
+"'
+alias $PASTE_ALIAS='powershell.exe -noprofile -command "
+$PWSH_PASTE_ESC
+" | tr -d "\r"'
 EOF
     fi
 }
