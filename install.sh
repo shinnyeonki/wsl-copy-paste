@@ -14,6 +14,7 @@ NC='\033[0m' # No Color
 CONFIG_FILE=""
 SOURCE_CMD=""
 CURRENT_SHELL=""
+REPO_URL="https://raw.githubusercontent.com/shinnyeonki/wsl-copy-paste/master"
 
 # Function to print header
 print_header() {
@@ -49,9 +50,13 @@ detect_shell() {
             CONFIG_FILE="$HOME/.zshrc"
             SOURCE_CMD="source ~/.zshrc"
             ;;
+        "fish")
+            CONFIG_FILE="$HOME/.config/fish/conf.d/wsl-copy-paste.fish"
+            SOURCE_CMD="source $CONFIG_FILE"
+            ;;
         *)
             echo -e "${YELLOW}Unsupported shell: $CURRENT_SHELL${NC}"
-            echo "Supported shells: bash, zsh"
+            echo "Supported shells: bash, zsh, fish"
             echo "Please manually add the aliases to your shell configuration file."
             exit 1
             ;;
@@ -62,6 +67,7 @@ detect_shell() {
 
 # Function to create config file if it doesn't exist
 ensure_config_file() {
+    mkdir -p "$(dirname "$CONFIG_FILE")"
     if [ ! -f "$CONFIG_FILE" ]; then
         echo -e "${YELLOW}Config file $CONFIG_FILE does not exist. Creating it...${NC}"
         touch "$CONFIG_FILE"
@@ -79,17 +85,21 @@ check_existing_configuration() {
 
 # Function to remove existing aliases
 remove_existing_aliases() {
-    echo -e "${BLUE}Removing existing aliases...${NC}"
-    # Remove existing WSL copy-paste block
-    sed -i '/# WSL Copy-Paste Aliases (wsl-copy-paste)/,/^$/d' "$CONFIG_FILE"
-    # Clean up any remaining PowerShell commands
-    sed -i '/powershell\.exe.*Set-Clipboard/d' "$CONFIG_FILE"
-    sed -i '/powershell\.exe.*Get-Clipboard/d' "$CONFIG_FILE"
+    echo -e "${BLUE}Removing existing aliases from $CONFIG_FILE...${NC}"
+    if [ "$CURRENT_SHELL" == "fish" ]; then
+        rm -f "$CONFIG_FILE"
+    else
+        # Remove existing WSL copy-paste block
+        sed -i '/# WSL Copy-Paste Aliases (wsl-copy-paste)/,/^$/d' "$CONFIG_FILE"
+        # Clean up any remaining PowerShell commands
+        sed -i '/powershell\.exe.*Set-Clipboard/d' "$CONFIG_FILE"
+        sed -i '/powershell\.exe.*Get-Clipboard/d' "$CONFIG_FILE"
+    fi
 }
 
 # Function to handle existing configuration
 handle_existing_configuration() {
-    echo -e "${GREEN}WSL copy-paste aliases are already configured!${NC}"
+    echo -e "${GREEN}WSL copy-paste aliases are already configured in $CONFIG_FILE!${NC}"
     echo ""
     echo -e "${BLUE}What would you like to do?${NC}"
     echo "1) Reconfigure aliases"
@@ -107,7 +117,9 @@ handle_existing_configuration() {
         "2")
             remove_existing_aliases
             echo -e "${GREEN}✅ WSL copy-paste aliases removed successfully${NC}"
-            echo -e "${BLUE}To apply changes, run: ${YELLOW}$SOURCE_CMD${NC}"
+            if [ "$CURRENT_SHELL" != "fish" ]; then
+                echo -e "${BLUE}To apply changes, run: ${YELLOW}$SOURCE_CMD${NC}"
+            fi
             exit 0
             ;;
         "3")
@@ -135,27 +147,62 @@ get_alias_names() {
     echo -e "${BLUE}Using aliases: ${YELLOW}$COPY_ALIAS${NC} and ${YELLOW}$PASTE_ALIAS${NC}"
 }
 
+# Function to fetch powershell fragments
+fetch_fragments() {
+    echo -e "${BLUE}Fetching PowerShell fragments...${NC}"
+    
+    # Try local first (if cloned)
+    if [ -f "./copy.ps1" ] && [ -f "./paste.ps1" ]; then
+        PWSH_COPY=$(cat "./copy.ps1" | tr -d '\n\r')
+        PWSH_PASTE=$(cat "./paste.ps1" | tr -d '\n\r')
+    else
+        # Fetch from GitHub
+        PWSH_COPY=$(curl -sSL "$REPO_URL/copy.ps1" | tr -d '\n\r')
+        PWSH_PASTE=$(curl -sSL "$REPO_URL/paste.ps1" | tr -d '\n\r')
+    fi
+
+    if [ -z "$PWSH_COPY" ] || [ -z "$PWSH_PASTE" ]; then
+        echo -e "${RED}Error: Failed to fetch PowerShell fragments.${NC}"
+        exit 1
+    fi
+}
+
 # Function to add aliases to config file
 add_aliases_to_config() {
     echo -e "${BLUE}Adding $COPY_ALIAS/$PASTE_ALIAS aliases to $CONFIG_FILE...${NC}"
 
-    cat >> "$CONFIG_FILE" << EOF
+    # Escape $ for shell aliases to prevent expansion
+    PWSH_COPY_ESC=$(echo "$PWSH_COPY" | sed 's/\$/\\$/g')
+    PWSH_PASTE_ESC=$(echo "$PWSH_PASTE" | sed 's/\$/\\$/g')
+
+    if [ "$CURRENT_SHELL" == "fish" ]; then
+        cat > "$CONFIG_FILE" << EOF
+# WSL Copy-Paste Aliases (wsl-copy-paste)
+# Perfect clipboard integration between WSL and Windows
+alias $COPY_ALIAS 'powershell.exe -noprofile -command "$PWSH_COPY_ESC"'
+alias $PASTE_ALIAS 'powershell.exe -noprofile -command "$PWSH_PASTE_ESC" | tr -d "\r"'
+EOF
+    else
+        cat >> "$CONFIG_FILE" << EOF
 
 # WSL Copy-Paste Aliases (wsl-copy-paste)
 # Perfect clipboard integration between WSL and Windows
-alias $COPY_ALIAS='powershell.exe -noprofile -command "\$inputStream = [Console]::OpenStandardInput(); \$memoryStream = New-Object System.IO.MemoryStream; \$inputStream.CopyTo(\$memoryStream); \$utf8Text = [System.Text.Encoding]::UTF8.GetString(\$memoryStream.ToArray()); Set-Clipboard -Value \$utf8Text"'
-alias $PASTE_ALIAS='powershell.exe -noprofile -command "\$clipboardText = Get-Clipboard -Raw; if (\$clipboardText -ne \$null) { \$utf8Bytes = [System.Text.Encoding]::UTF8.GetBytes(\$clipboardText); \$outputStream = [Console]::OpenStandardOutput(); \$outputStream.Write(\$utf8Bytes, 0, \$utf8Bytes.Length); \$outputStream.Flush(); \$outputStream.Close(); }" | tr -d "\r"'
+alias $COPY_ALIAS='powershell.exe -noprofile -command "$PWSH_COPY_ESC"'
+alias $PASTE_ALIAS='powershell.exe -noprofile -command "$PWSH_PASTE_ESC" | tr -d "\r"'
 EOF
+    fi
 }
 
 # Function to show completion message
 show_completion_message() {
     echo -e "${GREEN}✅ Aliases successfully added to $CONFIG_FILE${NC}"
     echo ""
-    echo -e "${BLUE}To activate the aliases in your current session, run:${NC}"
-    echo -e "${YELLOW}$SOURCE_CMD${NC}"
-    echo ""
-    echo -e "${BLUE}Or simply open a new terminal.${NC}"
+    if [ "$CURRENT_SHELL" == "fish" ]; then
+        echo -e "${BLUE}Changes will be applied automatically in new fish sessions.${NC}"
+    else
+        echo -e "${BLUE}To activate the aliases in your current session, run:${NC}"
+        echo -e "${YELLOW}$SOURCE_CMD${NC}"
+    fi
     echo ""
     echo -e "${BLUE}Usage examples:${NC}"
     echo -e "  ${YELLOW}echo 'Hello World' | $COPY_ALIAS${NC}    # Copy text to Windows clipboard"
@@ -168,6 +215,7 @@ show_completion_message() {
 # Function to install new aliases
 install_new_aliases() {
     get_alias_names
+    fetch_fragments
     add_aliases_to_config
     show_completion_message
 }
