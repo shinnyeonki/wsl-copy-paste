@@ -79,6 +79,20 @@ alias paste 'powershell.exe -noprofile -command "
 " | tr -d "\r"'
 ```
 
+### Vim Integration
+
+To conveniently use the system clipboard (`copy`, `paste`) within Vim, add the following configuration to your `.vimrc` file.
+
+```vim
+" WSL Clipboard Integration (using copy/paste aliases)
+vnoremap y :w !copy<CR><CR>
+nnoremap p :read !paste<CR>
+```
+
+With this configuration, pressing `y` in Vim's visual mode will copy the selection to the Windows clipboard, and pressing `p` in normal mode will insert the clipboard content after the current line.
+
+> **Note**: Aliases may not be directly recognized by Vim's `system()` or `!` commands. In such cases, you might need to map the full command or ensure aliases are expanded in your shell. For more stable usage, it is recommended to save `copy` and `paste` as separate executable files in your `$PATH`.
+
 ### Future Goals
 
 - Considering ways to integrate this tool with Wayland running within WSL.
@@ -186,17 +200,4 @@ When running the test script, the `diff` command should produce no output, and t
 ### Additional Notes
 This addresses an issue when trying to use these commands within a script. Since alias settings only work in interactive mode, you should either move them to separate executable files or use the `shopt -s expand_aliases` setting.
 
-### Vim Integration
-
-To conveniently use the system clipboard (`copy`, `paste`) within Vim, add the following configuration to your `.vimrc` file.
-
-```vim
-" WSL Clipboard Integration (using copy/paste aliases)
-vnoremap y :w !copy<CR><CR>
-nnoremap p :read !paste<CR>
-```
-
-With this configuration, pressing `y` in Vim's visual mode will copy the selection to the Windows clipboard, and pressing `p` in normal mode will insert the clipboard content after the current line.
-
-> **Note**: Aliases may not be directly recognized by Vim's `system()` or `!` commands. In such cases, you might need to map the full command or ensure aliases are expanded in your shell. For more stable usage, it is recommended to save `copy` and `paste` as separate executable files in your `$PATH`.
 
