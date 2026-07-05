@@ -79,6 +79,20 @@ alias paste 'powershell.exe -noprofile -command "
 " | tr -d "\r"'
 ```
 
+### Vim 통합 (Vim Integration)
+
+Vim 내에서 시스템 클립보드(`copy`, `paste`)를 편리하게 사용하려면 `.vimrc` 파일에 다음 설정을 추가하세요.
+
+```vim
+" WSL 클립보드 통합 (copy/paste alias 활용)
+vnoremap y :w !copy<CR><CR>
+nnoremap p :read !paste<CR>
+```
+
+위 설정을 적용하면 Vim의 비주얼 모드에서 영역을 선택한 후 `y`를 누르면 윈도우 클립보드로 복사되고, 일반 모드에서 `p`를 누르면 클립보드 내용이 현재 줄 다음에 삽입됩니다.
+
+> **주의**: alias는 Vim의 `system()`이나 `!` 명령에서 직접 인식되지 않을 수 있습니다. 이 경우 `install.sh`가 생성한 alias 대신 실제 명령어를 직접 매핑하거나, 쉘에서 alias가 확장되도록 설정해야 합니다. 더 안정적인 사용을 위해서는 `copy`/`paste`를 별도 실행 파일로 저장하여 `$PATH`에 두는 것을 권장합니다.
+
 ### 추후 목표
 
 - 해당 도구를 wsl 내에서 실행되는 wayland 와 통합 처리 방법에 대해 고민하고 있습니다
@@ -190,17 +204,4 @@ fi
 ### 추가사항
 스크립트 내에서 해당 명령을 사용하려고 할 때 발생하는 문제입니다. alias 설정의 경우 interactive 모드에서만 작동하므로 실행파일로 따로 빼거나 `shopt -s expand_aliases` 설정을 해야 합니다.
 
-### Vim 통합 (Vim Integration)
-
-Vim 내에서 시스템 클립보드(`copy`, `paste`)를 편리하게 사용하려면 `.vimrc` 파일에 다음 설정을 추가하세요.
-
-```vim
-" WSL 클립보드 통합 (copy/paste alias 활용)
-vnoremap y :w !copy<CR><CR>
-nnoremap p :read !paste<CR>
-```
-
-위 설정을 적용하면 Vim의 비주얼 모드에서 영역을 선택한 후 `y`를 누르면 윈도우 클립보드로 복사되고, 일반 모드에서 `p`를 누르면 클립보드 내용이 현재 줄 다음에 삽입됩니다.
-
-> **주의**: alias는 Vim의 `system()`이나 `!` 명령에서 직접 인식되지 않을 수 있습니다. 이 경우 `install.sh`가 생성한 alias 대신 실제 명령어를 직접 매핑하거나, 쉘에서 alias가 확장되도록 설정해야 합니다. 더 안정적인 사용을 위해서는 `copy`/`paste`를 별도 실행 파일로 저장하여 `$PATH`에 두는 것을 권장합니다.
 
